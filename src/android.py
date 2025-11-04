@@ -20,8 +20,9 @@ class AndroidNetwork:
         settings_cmd = ["settings", "get", "global", "wifi_scan_always_enabled"]
 
         # Use the new helper. Run quietly, as failure here is not critical.
+        # --- FIX: Changed call to use log_errors=False ---
         result = src.utils.run_command(
-            settings_cmd, "Failed to get Wi-Fi scanning state", quiet=True
+            settings_cmd, log_errors=False
         )
 
         if result and result.stdout.strip() == "1":
@@ -41,9 +42,9 @@ class AndroidNetwork:
             logger.info("Android: disabling Wi-Fi")
 
         wifi_disable_scanner_cmd = ["cmd", "wifi", "set-wifi-enabled", "disabled"]
-        # Use new helper
+        # --- FIX: Removed extra string argument ---
         src.utils.run_command(
-            wifi_disable_scanner_cmd, "Failed to disable Wi-Fi scanner, skipping"
+            wifi_disable_scanner_cmd
         )
 
         if self.ENABLED_SCANNING == 1 or force_disable:
@@ -54,10 +55,9 @@ class AndroidNetwork:
                 "set-scan-always-available",
                 "disabled",
             ]
-            # Use new helper
+            # --- FIX: Removed extra string argument ---
             src.utils.run_command(
-                wifi_disable_always_scanning_cmd,
-                "Failed to disable always-on Wi-Fi scanning, skipping",
+                wifi_disable_always_scanning_cmd
             )
 
         time.sleep(3)
@@ -68,9 +68,9 @@ class AndroidNetwork:
             logger.info("Android: enabling Wi-Fi")
 
         wifi_enable_scanner_cmd = ["cmd", "wifi", "set-wifi-enabled", "enabled"]
-        # Use new helper
+        # --- FIX: Removed extra string argument ---
         src.utils.run_command(
-            wifi_enable_scanner_cmd, "Failed to enable Wi-Fi scanner, skipping"
+            wifi_enable_scanner_cmd
         )
 
         if self.ENABLED_SCANNING == 1 or force_enable:
@@ -81,8 +81,7 @@ class AndroidNetwork:
                 "set-scan-always-available",
                 "enabled",
             ]
-            # Use new helper
+            # --- FIX: Removed extra string argument ---
             src.utils.run_command(
-                wifi_enable_always_scanning_cmd,
-                "Failed to enable always-on Wi-Fi scanning, skipping",
+                wifi_enable_always_scanning_cmd
             )

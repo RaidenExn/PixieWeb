@@ -34,8 +34,8 @@ class Data:
         if show_command:
             print(" ".join(command))  # This print STAYS
 
-        # --- Use new helper ---
-        command_output = src.utils.run_command(command, "Error running pixiewps")
+        # --- FIX: Removed extra string argument ---
+        command_output = src.utils.run_command(command)
 
         if not command_output:
             # Error was already logged by run_command

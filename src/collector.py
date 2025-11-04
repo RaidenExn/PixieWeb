@@ -47,18 +47,18 @@ def add_network(bssid: str, essid: str, wpa_psk: str) -> None:
             android_network = src.android.AndroidNetwork()
             android_network.enableWifi(force_enable=True, whisper=True)
 
-            # Use new helper
+            # --- FIX: Removed extra string argument ---
             if src.utils.run_command(
-                android_connect_cmd, "Failed to add network to Android"
+                android_connect_cmd
             ):
                 added = True
         except Exception as e:
             logger.error(f"Failed to enable Wi-Fi for saving network: {e}")
 
     elif which("nmcli"):
-        # Use new helper
+        # --- FIX: Removed extra string argument ---
         if src.utils.run_command(
-            networkmanager_connect_cmd, "Failed to add network to NetworkManager"
+            networkmanager_connect_cmd
         ):
             added = True
     else:

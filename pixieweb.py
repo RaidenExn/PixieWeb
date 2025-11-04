@@ -29,6 +29,9 @@ VULN_LIST: List[str] = []
 ATTACK_CANCEL_EVENT = threading.Event()
 WEBSOCKET_MANAGER: Optional["ConnectionManager"] = None
 
+# --- NEW: Get the absolute path to the directory this script is in ---
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+
 
 # ==============================================================================
 # === WEB UI (FastAPI) CODE ====================================================
@@ -133,10 +136,13 @@ class AttackSettings(BaseModel):
 
 @app.get("/", response_class=HTMLResponse)
 async def get_root():
+    # --- MODIFIED: Use the absolute path to index.html ---
+    html_file_path = os.path.join(SCRIPT_DIR, "index.html")
     try:
-        with open("index.html", "r", encoding="utf-8") as f:
+        with open(html_file_path, "r", encoding="utf-8") as f:
             return HTMLResponse(content=f.read())
     except FileNotFoundError:
+        logging.error(f"FATAL: index.html not found at {html_file_path}")
         return HTMLResponse("<h1>Error: index.html not found</h1>", status_code=500)
 
 
@@ -188,7 +194,10 @@ async def api_get_credentials():
             reader = csv.reader(file, delimiter=";")
             
             # --- FIX for F841: Read and discard header ---
-            next(reader)
+            try:
+                next(reader)
+            except StopIteration:
+                return JSONResponse(content=credentials) # File is empty
             
             for row in reader:
                 if row:
@@ -237,6 +246,12 @@ def run_attack_task(settings: AttackSettings):
     global main_loop, WEBSOCKET_MANAGER
     ATTACK_CANCEL_EVENT.clear()
     was_successful = False
+    
+    # --- FIX: Ensure model exists before accessing it ---
+    model_to_add = None
+    if settings.add_to_vuln_list and hasattr(settings, 'model') and settings.model:
+        model_to_add = settings.model
+
     try:
         if src.utils.ifaceCtl(settings.interface, action="up") != 0:
             logging.error(f"Failed to bring up interface {settings.interface}")
@@ -278,8 +293,8 @@ def run_attack_task(settings: AttackSettings):
                 f"{settings.attackType} attack on {settings.bssid} finished in {end_time - start_time:.2f} seconds."
             )
 
-        if was_successful and settings.add_to_vuln_list and settings.model:
-            src.utils.add_to_vuln_list(settings.model)
+        if was_successful and model_to_add:
+            src.utils.add_to_vuln_list(model_to_add)
 
     except Exception as e:
         logging.error(f"An error occurred during attack: {e}")
