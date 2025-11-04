@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" class="h-full bg-gray-900">
+<html lang="en" class="bg-gray-900 lg:h-full">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -24,45 +24,60 @@
         .log-INFO { color: #a7f3d0; } /* green-200 */
         .log-DEBUG { color: #6b7280; } /* gray-500 */
 
-        main {
-            height: calc(100vh - 61px); /* 100% viewport height minus header */
-        }
+        /* Removed fixed height for 'main' here. 
+         We'll apply height conditionally with Tailwind.
+        */
     </style>
 </head>
-<body class="h-full text-gray-200">
-    <div class="flex flex-col h-screen">
-        <header class="bg-gray-800 shadow-lg">
+<body class="text-gray-200 lg:h-full">
+    <!-- 
+      Wrapper: On large screens, it's a fixed h-screen. 
+      On mobile, height is 'auto' to allow scrolling. 
+    -->
+    <div class="flex flex-col lg:h-screen">
+        <header class="bg-gray-800 shadow-lg z-10">
             <div class="container mx-auto px-4 py-3 flex justify-between items-center">
-                <h1 class="text-2xl font-bold text-white">PixieWeb UI</h1>
-                <div class="flex items-center space-x-4">
+                <!-- Header text is smaller on mobile -->
+                <h1 class="text-xl lg:text-2xl font-bold text-white">PixieWeb</h1>
+                <div class="flex items-center space-x-2 lg:space-x-4">
                     
-                    <a href="https://github.com/RaidenExn/PixieWeb" target="_blank" rel="noopener noreferrer" title="GitHub Project" class="flex items-center space-x-2 bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded-md text-sm font-medium text-gray-200 hover:text-white transition">
-                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <a href="https://github.com/RaidenExn" target="_blank" rel="noopener noreferrer" title="GitHub Project" class="flex items-center space-x-2 bg-gray-700 hover:bg-gray-600 px-2 py-1 rounded-md text-xs lg:text-sm font-medium text-gray-200 hover:text-white transition">
+                        <svg class="w-4 h-4 lg:w-5 lg:h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                             <path fill-rule="evenodd" d="M12 2C6.477 2 2 6.477 2 12c0 4.418 2.865 8.165 6.839 9.49.5.092.682-.217.682-.483 0-.237-.009-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.031-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.026 2.747-1.026.546 1.379.203 2.398.1 2.651.64.7 1.03 1.595 1.03 2.688 0 3.848-2.339 4.695-4.566 4.942.359.308.678.92.678 1.852 0 1.338-.012 2.419-.012 2.745 0 .268.18.58.688.482A10.001 10.001 0 0022 12c0-5.523-4.477-10-10-10z" clip-rule="evenodd" />
                         </svg>
-                        <span>GitHub</span>
+                        <span class="hidden sm:inline">GitHub</span>
                     </a>
 
                     <div class="border-l border-gray-600 h-6"></div>
 
+                    <!-- WS Status text smaller on mobile -->
                     <div class="flex items-center space-x-2">
                         <span id="ws-status-light" class="h-3 w-3 rounded-full bg-red-500" title="Connecting..."></span>
-                        <span id="ws-status-text" class="text-sm">Connecting...</span>
+                        <span id="ws-status-text" class="text-xs lg:text-sm">Connecting...</span>
                     </div>
                 </div>
             </div>
         </header>
 
-        <main class="flex flex-col lg:flex-row p-4 gap-4 overflow-hidden">
+        <!-- 
+          Main: Stacks vertically on mobile (flex-col). 
+          Switches to horizontal (lg:flex-row) on large screens.
+          On mobile, height is 'auto'. On large screens, it fills the parent.
+        -->
+        <main class="flex flex-col lg:flex-row p-4 gap-4 lg:overflow-hidden lg:h-full">
             
-            <div class="lg:w-1/3 flex flex-col gap-4 overflow-y-auto pr-2">
+            <!-- 
+              Left Column: Full width on mobile. 
+              On large screens, becomes 1/3 width and scrolls internally.
+            -->
+            <div class="lg:w-1/3 flex flex-col gap-4 lg:overflow-y-auto lg:pr-2">
                 
                 <section class="bg-gray-800 p-4 rounded-lg shadow-lg">
                     <h2 class="text-lg font-semibold mb-3 border-b border-gray-700 pb-2">1. Configure Attack</h2>
                     
                     <div class="mb-3">
                         <label class="block text-sm font-medium text-gray-300">Target:</label>
-                        <span id="target-bssid" class="text-lg font-mono text-blue-300">No Target Selected</span>
+                        <span id="target-bssid" class="text-lg font-mono text-blue-300 block break-words">No Target Selected</span>
                         <span id="target-essid" class="text-md text-gray-400 ml-2"></span>
                     </div>
 
@@ -118,6 +133,7 @@
                 
                 <section class="bg-gray-800 p-4 rounded-lg shadow-lg">
                     <h2 class="text-lg font-semibold mb-3 border-b border-gray-700 pb-2">2. Found Credentials</h2>
+                    <!-- Set max-h on mobile so it doesn't take up too much space -->
                     <div id="credentials-container" class="max-h-64 overflow-y-auto">
                         <table id="credentials-table" class="w-full text-left text-sm">
                             <thead class="sticky top-0 bg-gray-800">
@@ -136,14 +152,19 @@
                 
             </div>
 
-            <div class="lg:w-2/3 flex-1 flex flex-col gap-4 overflow-hidden">
+            <!-- 
+              Right Column: Full width on mobile. 
+              On large screens, becomes 2/3 width and contains two scrolling sections.
+            -->
+            <div class="lg:w-2/3 lg:flex-1 flex flex-col gap-4 lg:overflow-hidden">
                 
-                <section class="bg-gray-800 rounded-lg shadow-lg flex-1 flex flex-col overflow-hidden">
-                    <div class="flex justify-between items-center p-4 border-b border-gray-700">
+                <!-- Scan Results: On mobile, has a fixed height. On desktop, it's flexible. -->
+                <section class="bg-gray-800 rounded-lg shadow-lg flex flex-col h-96 lg:h-auto lg:flex-1 lg:overflow-hidden">
+                    <div class="flex-shrink-0 flex flex-col sm:flex-row justify-between items-center p-4 border-b border-gray-700 gap-3">
                         <h2 class="text-lg font-semibold text-white">Scan Results</h2>
-                        <div class="flex gap-3">
-                            <input type="text" id="interface" value="wlan0" class="bg-gray-700 border border-gray-600 rounded-md px-3 py-2 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Interface">
-                            <button id="scan-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md transition duration-150 ease-in-out flex items-center justify-center min-w-[120px]">
+                        <div class="flex gap-3 w-full sm:w-auto">
+                            <input type="text" id="interface" value="wlan0" class="flex-1 bg-gray-700 border border-gray-600 rounded-md px-3 py-2 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Interface">
+                            <button id="scan-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md transition duration-150 ease-in-out flex items-center justify-center min-w-[100px]">
                                 <svg id="scan-btn-spinner" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -152,6 +173,11 @@
                             </button>
                         </div>
                     </div>
+                    <!-- 
+                      Target List: Scrolls internally on all screen sizes. 
+                      On mobile, it fills its 'h-96' parent.
+                      On desktop, it fills its 'lg:flex-1' parent.
+                    -->
                     <div id="target-list-container" class="flex-1 overflow-y-auto">
                         <p id="target-placeholder" class="text-gray-400 text-center mt-10">Run a scan to see targets</p>
                         <table id="target-table" class="hidden w-full text-left text-sm">
@@ -159,27 +185,30 @@
                                 <tr>
                                     <th class="py-2 px-3">Status</th>
                                     <th class="py-2 px-3">ESSID</th>
-                                    <th class="py-2 px-3">BSSID</th>
-                                    <th class="py-2 px-3">PWR</th>
-                                    <th class="py-2 px-3">WPS</th>
-                                    <th class="py-2 px-3">Locked</th>
-                                    <th class="py-2 px-3">Model</th>
+                                    <th class="py-2 px-3 hidden sm:table-cell">BSSID</th>
+                                    <th class="py-2 px-3 hidden sm:table-cell">PWR</th>
+                                    <th class="py-2 px-3 hidden md:table-cell">WPS</th>
+                                    <th class="py-2 px-3 hidden md:table-cell">Locked</th>
+                                    <th class="py-2 px-3 hidden lg:table-cell">Model</th>
                                     <th class="py-2 px-3">Action</th>
                                 </tr>
                             </thead>
                             <tbody id="target-list" class="divide-y divide-gray-700">
-                                </tbody>
+                                <!-- JS will populate this -->
+                            </tbody>
                         </table>
                     </div>
                 </section>
 
-                <section class="bg-gray-800 rounded-lg shadow-lg flex-1 flex flex-col overflow-hidden">
-                    <div class="flex justify-between items-center p-4 border-b border-gray-700">
+                <!-- Live Log: On mobile, has a fixed height. On desktop, it's flexible. -->
+                <section class="bg-gray-800 rounded-lg shadow-lg flex flex-col h-96 lg:h-auto lg:flex-1 lg:overflow-hidden">
+                    <div class="flex-shrink-0 flex justify-between items-center p-4 border-b border-gray-700">
                         <h2 class="text-lg font-semibold">Live Log</h2>
                         <button id="clear-log-btn" class="text-sm bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded-md transition">Clear Log</button>
                     </div>
                     <div id="log-container" class="flex-1 p-4 overflow-y-scroll">
-                        </div>
+                        <!-- JS will populate this -->
+                    </div>
                 </section>
             </div>
         </main>
@@ -203,7 +232,6 @@
             const attackBtnText = document.getElementById('attack-btn-text');
             const stopBtn = document.getElementById('stop-btn');
 
-            // --- FIX: Get the *correct* table elements ---
             const targetListContainer = document.getElementById('target-list-container');
             const targetList = targetListContainer.querySelector('#target-list');
             const targetTable = targetListContainer.querySelector('#target-table');
@@ -317,19 +345,20 @@
                     
                     networks.forEach(net => {
                         const row = document.createElement('tr');
-                        row.className = 'border-b border-gray-700 hover:bg-gray-700 cursor-pointer';
+                        row.className = 'hover:bg-gray-700 cursor-pointer';
                         
                         const pwrColor = getSignalColor(net.Level);
                         const model = `${net.Model} ${net.Model_number}`.trim();
+                        const essid = net.ESSID || '(No ESSID)';
 
                         row.innerHTML = `
                             <td class="py-2 px-3">${getStatusLabel(net.status)}</td>
-                            <td class="py-2 px-3">${net.ESSID || '(No ESSID)'}</td>
-                            <td class="py-2 px-3 font-mono">${net.BSSID}</td>
-                            <td class="py-2 px-3 ${pwrColor}">${net.Level} dBm</td>
-                            <td class="py-2 px-3">${net.WPS_version}</td>
-                            <td class="py-2 px-3">${net.WPS_locked ? 'Yes' : 'No'}</td>
-                            <td class="py-2 px-3">${model || 'N/A'}</td>
+                            <td class="py-2 px-3 truncate" title="${essid}">${essid}</td>
+                            <td class="py-2 px-3 font-mono hidden sm:table-cell">${net.BSSID}</td>
+                            <td class="py-2 px-3 ${pwrColor} hidden sm:table-cell">${net.Level} dBm</td>
+                            <td class="py-2 px-3 hidden md:table-cell">${net.WPS_version}</td>
+                            <td class="py-2 px-3 hidden md:table-cell">${net.WPS_locked ? 'Yes' : 'No'}</td>
+                            <td class="py-2 px-3 truncate hidden lg:table-cell" title="${model}">${model || 'N/A'}</td>
                             <td class="py-2 px-3"></td>
                         `;
                         
@@ -341,7 +370,7 @@
                             selectTarget(net.BSSID, net.ESSID, model);
                         };
                         
-                        row.cells[7].appendChild(selectBtn);
+                        row.cells[row.cells.length - 1].appendChild(selectBtn);
                         row.addEventListener('click', () => selectTarget(net.BSSID, net.ESSID, model));
                         targetList.appendChild(row);
                     });
@@ -364,7 +393,8 @@
                 attackBtnText.textContent = 'Start Attack';
 
                 Array.from(targetList.rows).forEach(row => {
-                    if (row.cells[2].textContent === bssid) {
+                    // Use includes instead of exact match for BSSID cell
+                    if (row.innerHTML.includes(bssid)) {
                         row.classList.add('bg-blue-900');
                     } else {
                         row.classList.remove('bg-blue-900');
@@ -413,9 +443,9 @@
                         creds.reverse().forEach(cred => {
                             const row = document.createElement('tr');
                             row.innerHTML = `
-                                <td class="py-2">${cred.essid}</td>
-                                <td class_name="py-2 font-mono">${cred.pin}</td>
-                                <td class_name="py-2 font-mono">${cred.psk}</td>
+                                <td class="py-2 truncate" title="${cred.essid}">${cred.essid}</td>
+                                <td class="py-2 font-mono">${cred.pin}</td>
+                                <td class="py-2 font-mono truncate" title="${cred.psk}">${cred.psk}</td>
                             `;
                             credentialsList.appendChild(row);
                         });
