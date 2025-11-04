@@ -50,8 +50,16 @@ def run_command(
 
 
 def isAndroid() -> bool:
-    """Check if running on Android."""
-    return bool(hasattr(sys, "getandroidapilevel"))
+    """Check if running on Android (including Termux)."""
+    # Check for Pydroid/Kivy style Android
+    if hasattr(sys, "getandroidapilevel"):
+        return True
+    # Check for Termux environment
+    if "TERMUX_VERSION" in os.environ:
+        return True
+    if os.environ.get("PREFIX") and "com.termux" in os.environ["PREFIX"]:
+        return True
+    return False
 
 
 def checkRequirements(is_web: bool = False) -> None:
@@ -62,7 +70,11 @@ def checkRequirements(is_web: bool = False) -> None:
     if not is_web and os.getuid() != 0:
         die("Run it as root (or use --web if you already ran with sudo)")
 
-    required_commands = ["pixiewps", "iw", "ip", "rfkill"]
+    required_commands = ["pixiewps", "iw", "ip"]
+    # Conditionally add rfkill only if not on Android
+    if not isAndroid():
+        required_commands.append("rfkill")
+        
     missing_commands = []
     for cmd in required_commands:
         if not which(cmd):
