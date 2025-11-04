@@ -7,7 +7,7 @@ import os
 import sys
 import csv
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, BackgroundTasks
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse, FileResponse
 from typing import List, Dict, Any, Optional
 from contextlib import asynccontextmanager
 from pydantic import BaseModel
@@ -28,9 +28,7 @@ main_thread_id: Optional[int] = None
 VULN_LIST: List[str] = []
 ATTACK_CANCEL_EVENT = threading.Event()
 WEBSOCKET_MANAGER: Optional["ConnectionManager"] = None
-
-# --- NEW: Get the absolute path to the directory this script is in ---
-SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+SCRIPT_DIR = Path(__file__).resolve().parent
 
 
 # ==============================================================================
@@ -51,10 +49,13 @@ class ConnectionManager:
             self.active_connections.remove(websocket)
 
     async def broadcast_json(self, data: dict):
-        for connection in self.active_connections[:]:
+        # Create a copy of the list for safe iteration
+        connections = self.active_connections[:]
+        for connection in connections:
             try:
                 await connection.send_json(data)
             except Exception:
+                # Disconnect if sending fails
                 self.disconnect(connection)
 
 
@@ -68,13 +69,17 @@ class WebSocketLogHandler(logging.Handler):
         try:
             msg = self.format(record)
             log_data = {"type": "log", "level": record.levelname, "message": msg}
-            coro = self.manager.broadcast_json(log_data)
-
+            
+            # Get the loop for the main thread
             if main_loop and threading.current_thread().ident != main_thread_id:
-                asyncio.run_coroutine_threadsafe(coro, main_loop)
+                # If in a worker thread, run thread-safe
+                asyncio.run_coroutine_threadsafe(
+                    self.manager.broadcast_json(log_data), main_loop
+                )
             else:
-                if main_loop and main_loop.is_running():
-                    main_loop.create_task(coro)
+                 # If in the main thread, create a task
+                 if main_loop and main_loop.is_running():
+                    main_loop.create_task(self.manager.broadcast_json(log_data))
         except Exception:
             pass  # Fail quietly
 
@@ -109,8 +114,10 @@ async def lifespan(app: FastAPI):
         VULN_LIST = src.utils.load_vuln_list()
     except SystemExit as e:
         logging.critical(f"Startup check failed: {e}")
+        logging.exception("Detailed startup error")
     except Exception as e:
         logging.critical(f"Startup check failed: {e}")
+        logging.exception("Detailed startup error")
 
     yield
 
@@ -124,6 +131,7 @@ class AttackSettings(BaseModel):
     interface: str
     bssid: str
     essid: str
+    model: Optional[str] = None
     attackType: str
     pin: Optional[str] = None
     delay: Optional[float] = None
@@ -136,14 +144,35 @@ class AttackSettings(BaseModel):
 
 @app.get("/", response_class=HTMLResponse)
 async def get_root():
-    # --- MODIFIED: Use the absolute path to index.html ---
-    html_file_path = os.path.join(SCRIPT_DIR, "index.html")
-    try:
-        with open(html_file_path, "r", encoding="utf-8") as f:
-            return HTMLResponse(content=f.read())
-    except FileNotFoundError:
-        logging.error(f"FATAL: index.html not found at {html_file_path}")
+    html_path = SCRIPT_DIR / "index.html"
+    if not html_path.is_file():
+        logging.fatal(f"FATAL: index.html not found at {html_path}")
         return HTMLResponse("<h1>Error: index.html not found</h1>", status_code=500)
+    try:
+        with open(html_path, "r", encoding="utf-8") as f:
+            return HTMLResponse(content=f.read())
+    except FileNotFoundError: # Keep this just in case
+        logging.fatal(f"FATAL: index.html not found at {html_path}")
+        return HTMLResponse("<h1>Error: index.html not found</h1>", status_code=500)
+
+
+# --- NEW: Add routes for static files ---
+@app.get("/style.css", response_class=FileResponse)
+async def get_style():
+    path = SCRIPT_DIR / "style.css"
+    if not path.is_file():
+        logging.warning(f"404 - style.css not found at {path}")
+        return HTMLResponse("style.css not found", status_code=404)
+    return FileResponse(path)
+
+@app.get("/app.js", response_class=FileResponse)
+async def get_script():
+    path = SCRIPT_DIR / "app.js"
+    if not path.is_file():
+        logging.warning(f"404 - app.js not found at {path}")
+        return HTMLResponse("app.js not found", status_code=404)
+    return FileResponse(path)
+# --- END NEW ---
 
 
 @app.websocket("/ws")
@@ -154,6 +183,7 @@ async def websocket_endpoint(websocket: WebSocket):
     logging.info("Web UI connected.")
     try:
         while True:
+            # Keep the connection alive
             await websocket.receive_text()
     except WebSocketDisconnect:
         WEBSOCKET_MANAGER.disconnect(websocket)
@@ -193,14 +223,13 @@ async def api_get_credentials():
         with open(creds_file, "r", newline="", encoding="utf-8") as file:
             reader = csv.reader(file, delimiter=";")
             
-            # --- FIX for F841: Read and discard header ---
             try:
-                next(reader)
+                next(reader) # Skip header
             except StopIteration:
                 return JSONResponse(content=credentials) # File is empty
             
             for row in reader:
-                if row:
+                if row and len(row) >= 5: # Check row length
                     credentials.append(
                         {
                             "date": row[0],
@@ -235,6 +264,7 @@ def run_scan_task(interface: str):
             )
     except Exception as e:
         logging.error(f"An error occurred during scan: {e}")
+        logging.exception("Detailed scan task error")
     finally:
         if main_loop and WEBSOCKET_MANAGER:
             asyncio.run_coroutine_threadsafe(
@@ -246,12 +276,6 @@ def run_attack_task(settings: AttackSettings):
     global main_loop, WEBSOCKET_MANAGER
     ATTACK_CANCEL_EVENT.clear()
     was_successful = False
-    
-    # --- FIX: Ensure model exists before accessing it ---
-    model_to_add = None
-    if settings.add_to_vuln_list and hasattr(settings, 'model') and settings.model:
-        model_to_add = settings.model
-
     try:
         if src.utils.ifaceCtl(settings.interface, action="up") != 0:
             logging.error(f"Failed to bring up interface {settings.interface}")
@@ -269,6 +293,7 @@ def run_attack_task(settings: AttackSettings):
             connection.smartBruteforce(
                 settings.bssid, settings.pin, settings.delay
             )
+            # Check the connection status from the inner connection object
             if connection.CONNECTION.CONNECTION_STATUS.STATUS == "GOT_PSK":
                 was_successful = True
         else:
@@ -293,11 +318,12 @@ def run_attack_task(settings: AttackSettings):
                 f"{settings.attackType} attack on {settings.bssid} finished in {end_time - start_time:.2f} seconds."
             )
 
-        if was_successful and model_to_add:
-            src.utils.add_to_vuln_list(model_to_add)
+        if was_successful and settings.add_to_vuln_list and settings.model:
+            src.utils.add_to_vuln_list(settings.model)
 
     except Exception as e:
         logging.error(f"An error occurred during attack: {e}")
+        logging.exception("Detailed attack task error")
 
     finally:
         if main_loop and WEBSOCKET_MANAGER:
@@ -314,10 +340,8 @@ def start_web_server():
     """Launches the FastAPI web server."""
     print("--- Starting PixieWeb UI ---")
     print("WARNING: This server must be run with sudo/root privileges.")
-    # --- FIX: Changed to 127.0.0.1 ---
     print("Access the UI at http://127.0.0.1:8000")
     print("------------------------------------------")
-    # --- FIX: Bind to 127.0.0.1 for security ---
     uvicorn.run("pixieweb:app", host="127.0.0.1", port=8000, reload=False)
 
 
@@ -460,6 +484,7 @@ def start_cli(args):
                 break
         except Exception as e:
             logging.error(f"An unexpected error occurred: {e}")
+            logging.exception("Detailed CLI error")
             if not args.loop:
                 break
             logging.info("Restarting loop...")
@@ -510,3 +535,4 @@ if __name__ == "__main__":
             sys.exit(1)
 
         start_cli(args)
+

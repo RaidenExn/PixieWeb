@@ -1,171 +1,132 @@
 <!DOCTYPE html>
-<html lang="en" class="bg-gray-900 lg:h-full">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PixieWeb UI</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        body { font-family: 'Inter', sans-serif; }
-        #log-container {
-            font-family: 'Menlo', 'Consolas', monospace;
-            line-height: 1.6;
-        }
-        /* Custom scrollbar */
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #1f2937; } /* gray-800 */
-        ::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 4px; } /* gray-600 */
-        ::-webkit-scrollbar-thumb:hover { background: #6b7280; } /* gray-500 */
-        
-        /* Log level colors */
-        .log-CRITICAL { color: #ef4444; font-weight: bold; } /* red-500 */
-        .log-ERROR { color: #f87171; } /* red-400 */
-        .log-WARNING { color: #facc15; } /* yellow-400 */
-        .log-INFO { color: #a7f3d0; } /* green-200 */
-        .log-DEBUG { color: #6b7280; } /* gray-500 */
+    
+    <meta name="theme-color" content="#fbfcff">
 
-        /* Removed fixed height for 'main' here. 
-         We'll apply height conditionally with Tailwind.
-        */
-    </style>
-</head>
-<body class="text-gray-200 lg:h-full">
-    <!-- 
-      Wrapper: On large screens, it's a fixed h-screen. 
-      On mobile, height is 'auto' to allow scrolling. 
-    -->
-    <div class="flex flex-col lg:h-screen">
-        <header class="bg-gray-800 shadow-lg z-10">
-            <div class="container mx-auto px-4 py-3 flex justify-between items-center">
-                <!-- Header text is smaller on mobile -->
-                <h1 class="text-xl lg:text-2xl font-bold text-white">PixieWeb</h1>
-                <div class="flex items-center space-x-2 lg:space-x-4">
-                    
-                    <a href="https://github.com/RaidenExn" target="_blank" rel="noopener noreferrer" title="GitHub Project" class="flex items-center space-x-2 bg-gray-700 hover:bg-gray-600 px-2 py-1 rounded-md text-xs lg:text-sm font-medium text-gray-200 hover:text-white transition">
-                        <svg class="w-4 h-4 lg:w-5 lg:h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="style.css">
+    
+    </head>
+<body>
+    <div class="page-container">
+        <header class="header">
+            <div class="header-content">
+                <h1 class="header-title">PixieWeb</h1>
+                <div class="header-controls">
+                    <a href="https://github.com/RaidenExn" target="_blank" rel="noopener noreferrer" title="GitHub Project" class="btn btn-icon">
+                        <svg class="icon" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                             <path fill-rule="evenodd" d="M12 2C6.477 2 2 6.477 2 12c0 4.418 2.865 8.165 6.839 9.49.5.092.682-.217.682-.483 0-.237-.009-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.031-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.026 2.747-1.026.546 1.379.203 2.398.1 2.651.64.7 1.03 1.595 1.03 2.688 0 3.848-2.339 4.695-4.566 4.942.359.308.678.92.678 1.852 0 1.338-.012 2.419-.012 2.745 0 .268.18.58.688.482A10.001 10.001 0 0022 12c0-5.523-4.477-10-10-10z" clip-rule="evenodd" />
                         </svg>
-                        <span class="hidden sm:inline">GitHub</span>
                     </a>
+                    
+                    <div class="divider"></div>
 
-                    <div class="border-l border-gray-600 h-6"></div>
-
-                    <!-- WS Status text smaller on mobile -->
-                    <div class="flex items-center space-x-2">
-                        <span id="ws-status-light" class="h-3 w-3 rounded-full bg-red-500" title="Connecting..."></span>
-                        <span id="ws-status-text" class="text-xs lg:text-sm">Connecting...</span>
+                    <div class="status-indicator">
+                        <span id="ws-status-icon"></span>
+                        <span id="ws-status-text">Connecting...</span>
                     </div>
                 </div>
             </div>
         </header>
 
-        <!-- 
-          Main: Stacks vertically on mobile (flex-col). 
-          Switches to horizontal (lg:flex-row) on large screens.
-          On mobile, height is 'auto'. On large screens, it fills the parent.
-        -->
-        <main class="flex flex-col lg:flex-row p-4 gap-4 lg:overflow-hidden lg:h-full">
+        <main class="main-content">
             
-            <!-- 
-              Left Column: Full width on mobile. 
-              On large screens, becomes 1/3 width and scrolls internally.
-            -->
-            <div class="lg:w-1/3 flex flex-col gap-4 lg:overflow-y-auto lg:pr-2">
-                
-                <section class="bg-gray-800 p-4 rounded-lg shadow-lg">
-                    <h2 class="text-lg font-semibold mb-3 border-b border-gray-700 pb-2">1. Configure Attack</h2>
+            <div class="left-column">
+                <section class="card">
+                    <h2 class="card-header">1. Configure Attack</h2>
                     
-                    <div class="mb-3">
-                        <label class="block text-sm font-medium text-gray-300">Target:</label>
-                        <span id="target-bssid" class="text-lg font-mono text-blue-300 block break-words">No Target Selected</span>
-                        <span id="target-essid" class="text-md text-gray-400 ml-2"></span>
+                    <div class="form-group">
+                        <label class="input-label" for="target-bssid">Target:</label>
+                        <span id="target-bssid" class="target-display-bssid">No Target Selected</span>
+                        <span id="target-essid" class="target-display-essid"></span>
                     </div>
 
-                    <div class="mt-2 border-t border-gray-700 pt-3">
-                        <label class="block text-sm font-medium text-gray-300">Or Enter BSSID Manually</label>
-                        <div class="flex gap-2 mt-1">
-                            <input type="text" id="manual-bssid" placeholder="BSSID (e.g., AA:BB:CC:11:22:33)" class="flex-1 bg-gray-700 border border-gray-600 rounded-md px-3 py-2 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <button id="manual-set-btn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-3 rounded-md transition duration-150 ease-in-out">
-                                Set
-                            </button>
+                    <div class="form-divider"></div>
+
+                    <div class="form-group">
+                        <label for="manual-bssid" class="input-label">Or Enter BSSID Manually</label>
+                        <div class="input-group">
+                            <input type="text" id="manual-bssid" placeholder="AA:BB:CC:11:22:33" class="input">
+                            <button id="manual-set-btn" class="btn btn-text">Set</button>
                         </div>
                     </div>
-                    <div class="mt-4 border-t border-gray-700 pt-3">
-                        <label for="attack-type" class="block text-sm font-medium text-gray-300">Attack Type</label>
-                        <select id="attack-type" class="w-full mt-1 bg-gray-700 border border-gray-600 rounded-md px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+
+                    <div class="form-divider"></div>
+
+                    <div class="form-group">
+                        <label for="attack-type" class="input-label">Attack Type</label>
+                        <select id="attack-type" class="select">
                             <option value="pixie">Pixie Dust (Default)</option>
                             <option value="pin">Custom PIN Attack</option>
                             <option value="bruteforce">Online Bruteforce</option>
                         </select>
                     </div>
 
-                    <div id="pin-group" class="mb-3 mt-3 hidden">
-                        <label for="custom-pin" class="block text-sm font-medium text-gray-300">Custom PIN (or blank for auto-gen)</label>
-                        <input type="text" id="custom-pin" placeholder="e.g., 12345670" class="w-full mt-1 bg-gray-700 border border-gray-600 rounded-md px-3 py-2 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <div id="pin-group" class="form-group hidden">
+                        <label for="custom-pin" class="input-label">Custom PIN (or blank for auto-gen)</label>
+                        <input type="text" id="custom-pin" placeholder="e.g., 12345670" class="input">
                     </div>
                     
-                    <div id="delay-group" class="mb-3 mt-3 hidden">
-                        <label for="bruteforce-delay" class="block text-sm font-medium text-gray-300">Delay (seconds)</label>
-                        <input type="number" id="bruteforce-delay" value="1" min="0" step="0.1" class="w-full mt-1 bg-gray-700 border border-gray-600 rounded-md px-3 py-2 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <div id="delay-group" class="form-group hidden">
+                        <label for="bruteforce-delay" class="input-label">Delay (seconds)</label>
+                        <input type="number" id="bruteforce-delay" value="1" min="0" step="0.1" class="input">
                     </div>
 
-                    <div class="grid grid-cols-2 gap-3 my-3 text-sm">
-                        <label class="flex items-center space-x-2"><input type="checkbox" id="check-write" checked class="rounded bg-gray-700 border-gray-600 text-blue-600 shadow-sm focus:ring-blue-500"><span>Write to file</span></label>
-                        <label class="flex items-center space-x-2"><input type="checkbox" id="check-save" checked class="rounded bg-gray-700 border-gray-600 text-blue-600 shadow-sm focus:ring-blue-500"><span>Save to manager</span></label>
-                        <label class="flex items-center space-x-2"><input type="checkbox" id="check-pixie-cmd" class="rounded bg-gray-700 border-gray-600 text-blue-600 shadow-sm focus:ring-blue-500"><span>Show Pixie cmd</span></label>
-                        <label class="flex items-center space-x-2"><input type="checkbox" id="check-pixie-force" class="rounded bg-gray-700 border-gray-600 text-blue-600 shadow-sm focus:ring-blue-500"><span>Pixie --force</span></label>
-                        <label class="flex items-center space-x-2"><input type="checkbox" id="check-add-vuln" checked class="rounded bg-gray-700 border-gray-600 text-blue-600 shadow-sm focus:ring-blue-500"><span>Add to vuln list</span></label>
+                    <div class="form-divider"></div>
+
+                    <div class="checkbox-group">
+                        <label class="checkbox-label"><input type="checkbox" id="check-write" checked class="checkbox"><span>Write to file</span></label>
+                        <label class="checkbox-label"><input type="checkbox" id="check-save" checked class="checkbox"><span>Save to manager</span></label>
+                        <label class="checkbox-label"><input type="checkbox" id="check-pixie-cmd" class="checkbox"><span>Show Pixie cmd</span></label>
+                        <label class="checkbox-label"><input type="checkbox" id="check-pixie-force" class="checkbox"><span>Pixie --force</span></label>
+                        <label class="checkbox-label"><input type="checkbox" id="check-add-vuln" checked class="checkbox"><span>Add to vuln list</span></label>
                     </div>
 
-                    <div class="flex gap-3">
-                        <button id="attack-btn" disabled class="w-2/3 bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-md transition duration-150 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center">
-                            <svg id="attack-btn-spinner" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <div class="button-group">
+                        <button id="attack-btn" disabled class="btn btn-filled-error">
+                            <svg id="attack-btn-spinner" class="spinner hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                             </svg>
-                            <span id="attack-btn-text">Select a Target</span>
+                            <span id="attack-btn-text">Select Target</span>
                         </button>
-                        <button id="stop-btn" class="w-1/3 bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-md transition duration-150 ease-in-out hidden">
-                            Stop
-                        </button>
+                        <button id="stop-btn" class="btn btn-tonal-error hidden">Stop</button>
                     </div>
                 </section>
                 
-                <section class="bg-gray-800 p-4 rounded-lg shadow-lg">
-                    <h2 class="text-lg font-semibold mb-3 border-b border-gray-700 pb-2">2. Found Credentials</h2>
-                    <!-- Set max-h on mobile so it doesn't take up too much space -->
-                    <div id="credentials-container" class="max-h-64 overflow-y-auto">
-                        <table id="credentials-table" class="w-full text-left text-sm">
-                            <thead class="sticky top-0 bg-gray-800">
+                <section class="card">
+                    <h2 class="card-header">2. Found Credentials</h2>
+                    <div id="credentials-container" class="table-container-constrained">
+                        <table id="credentials-table" class="table">
+                            <thead class="sticky-header">
                                 <tr>
-                                    <th class="py-2">ESSID</th>
-                                    <th class="py-2">PIN</th>
-                                    <th class="py-2">PSK</th>
+                                    <th>ESSID</th>
+                                    <th>PIN</th>
+                                    <th>PSK</th>
                                 </tr>
                             </thead>
-                            <tbody id="credentials-list" class="divide-y divide-gray-700">
-                                </tbody>
+                            <tbody id="credentials-list"></tbody>
                         </table>
-                        <p id="credentials-placeholder" class="text-gray-400 text-center mt-4">No credentials found yet.</p>
+                        <p id="credentials-placeholder" class="table-placeholder">No credentials found yet.</p>
                     </div>
                 </section>
-                
             </div>
 
-            <!-- 
-              Right Column: Full width on mobile. 
-              On large screens, becomes 2/3 width and contains two scrolling sections.
-            -->
-            <div class="lg:w-2/3 lg:flex-1 flex flex-col gap-4 lg:overflow-hidden">
-                
-                <!-- Scan Results: On mobile, has a fixed height. On desktop, it's flexible. -->
-                <section class="bg-gray-800 rounded-lg shadow-lg flex flex-col h-96 lg:h-auto lg:flex-1 lg:overflow-hidden">
-                    <div class="flex-shrink-0 flex flex-col sm:flex-row justify-between items-center p-4 border-b border-gray-700 gap-3">
-                        <h2 class="text-lg font-semibold text-white">Scan Results</h2>
-                        <div class="flex gap-3 w-full sm:w-auto">
-                            <input type="text" id="interface" value="wlan0" class="flex-1 bg-gray-700 border border-gray-600 rounded-md px-3 py-2 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Interface">
-                            <button id="scan-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md transition duration-150 ease-in-out flex items-center justify-center min-w-[100px]">
-                                <svg id="scan-btn-spinner" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <div class="right-column">
+                <section class="card card-full-flex">
+                    <div class="card-top-bar">
+                        <h2 class="card-header">Scan Results</h2>
+                        <div class="scan-controls">
+                            <input type="text" id="interface" value="wlan0" class="input" placeholder="Interface">
+                            <button id="scan-btn" class="btn btn-filled">
+                                <svg id="scan-btn-spinner" class="spinner hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                 </svg>
@@ -173,395 +134,38 @@
                             </button>
                         </div>
                     </div>
-                    <!-- 
-                      Target List: Scrolls internally on all screen sizes. 
-                      On mobile, it fills its 'h-96' parent.
-                      On desktop, it fills its 'lg:flex-1' parent.
-                    -->
-                    <div id="target-list-container" class="flex-1 overflow-y-auto">
-                        <p id="target-placeholder" class="text-gray-400 text-center mt-10">Run a scan to see targets</p>
-                        <table id="target-table" class="hidden w-full text-left text-sm">
-                            <thead class="sticky top-0 bg-gray-800 shadow-sm">
+                    <div id="target-list-container" class="table-container-scrollable">
+                        <p id="target-placeholder" class="table-placeholder">Run a scan to see targets</p>
+                        <table id="target-table" class="table hidden">
+                            <thead class="sticky-header">
                                 <tr>
-                                    <th class="py-2 px-3">Status</th>
-                                    <th class="py-2 px-3">ESSID</th>
-                                    <th class="py-2 px-3 hidden sm:table-cell">BSSID</th>
-                                    <th class="py-2 px-3 hidden sm:table-cell">PWR</th>
-                                    <th class="py-2 px-3 hidden md:table-cell">WPS</th>
-                                    <th class="py-2 px-3 hidden md:table-cell">Locked</th>
-                                    <th class="py-2 px-3 hidden lg:table-cell">Model</th>
-                                    <th class="py-2 px-3">Action</th>
+                                    <th>Status</th>
+                                    <th>ESSID</th>
+                                    <th>BSSID</th>
+                                    <th>PWR</th>
+                                    <th>WPS</th>
+                                    <th>Locked</th>
+                                    <th>Model</th>
+                                    <th>Action</th>
                                 </tr>
                             </thead>
-                            <tbody id="target-list" class="divide-y divide-gray-700">
-                                <!-- JS will populate this -->
-                            </tbody>
+                            <tbody id="target-list"></tbody>
                         </table>
                     </div>
                 </section>
 
-                <!-- Live Log: On mobile, has a fixed height. On desktop, it's flexible. -->
-                <section class="bg-gray-800 rounded-lg shadow-lg flex flex-col h-96 lg:h-auto lg:flex-1 lg:overflow-hidden">
-                    <div class="flex-shrink-0 flex justify-between items-center p-4 border-b border-gray-700">
-                        <h2 class="text-lg font-semibold">Live Log</h2>
-                        <button id="clear-log-btn" class="text-sm bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded-md transition">Clear Log</button>
+                <section class="card card-full-flex">
+                    <div class="card-top-bar">
+                        <h2 class="card-header">Live Log</h2>
+                        <button id="clear-log-btn" class="btn btn-text">Clear</button>
                     </div>
-                    <div id="log-container" class="flex-1 p-4 overflow-y-scroll">
-                        <!-- JS will populate this -->
-                    </div>
+                    <div id="log-container" class="log-container">
+                        </div>
                 </section>
             </div>
         </main>
     </div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            // --- Element Cache ---
-            const wsStatusLight = document.getElementById('ws-status-light');
-            const wsStatusText = document.getElementById('ws-status-text');
-            const logContainer = document.getElementById('log-container');
-            const clearLogBtn = document.getElementById('clear-log-btn');
-            
-            const scanBtn = document.getElementById('scan-btn');
-            const scanBtnSpinner = document.getElementById('scan-btn-spinner');
-            const scanBtnText = document.getElementById('scan-btn-text');
-            const interfaceInput = document.getElementById('interface');
-            
-            const attackBtn = document.getElementById('attack-btn');
-            const attackBtnSpinner = document.getElementById('attack-btn-spinner');
-            const attackBtnText = document.getElementById('attack-btn-text');
-            const stopBtn = document.getElementById('stop-btn');
-
-            const targetListContainer = document.getElementById('target-list-container');
-            const targetList = targetListContainer.querySelector('#target-list');
-            const targetTable = targetListContainer.querySelector('#target-table');
-            const targetPlaceholder = targetListContainer.querySelector('#target-placeholder');
-            
-            const targetBSSID = document.getElementById('target-bssid');
-            const targetESSID = document.getElementById('target-essid');
-            const attackTypeSelect = document.getElementById('attack-type');
-            const pinGroup = document.getElementById('pin-group');
-            const customPinInput = document.getElementById('custom-pin');
-            const delayGroup = document.getElementById('delay-group');
-            
-            const credentialsList = document.getElementById('credentials-list');
-            const credentialsPlaceholder = document.getElementById('credentials-placeholder');
-            
-            const manualBssidInput = document.getElementById('manual-bssid');
-            const manualSetBtn = document.getElementById('manual-set-btn');
-            const bssidRegex = /^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$/;
-
-            let selectedBSSID = null;
-            let selectedESSID = null;
-            let selectedModel = null;
-            let ws;
-
-            // --- WebSocket Logic ---
-            function connectWebSocket() {
-                const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-                ws = new WebSocket(`${proto}//${window.location.host}/ws`);
-
-                ws.onopen = () => {
-                    updateWsStatus('Connected', 'bg-green-500');
-                    addLog('WebSocket connection established.', 'INFO');
-                };
-
-                ws.onmessage = (event) => {
-                    const data = JSON.parse(event.data);
-                    
-                    if (data.type === 'log') {
-                        addLog(data.message, data.level);
-                    } else if (data.type === 'scan_results') {
-                        updateTargetList(data.networks);
-                    } else if (data.type === 'scan_complete') {
-                        setScanButtonState(false);
-                    } else if (data.type === 'attack_complete') {
-                        setAttackButtonState(false);
-                        if (data.success === true) {
-                            addLog('Attack successful! Refreshing credentials...', 'INFO');
-                            loadCredentials();
-                        }
-                    }
-                };
-
-                ws.onclose = () => {
-                    updateWsStatus('Disconnected', 'bg-red-500');
-                    addLog('WebSocket disconnected. Attempting to reconnect in 3s...', 'ERROR');
-                    setScanButtonState(false);
-                    setAttackButtonState(false);
-                    setTimeout(connectWebSocket, 3000);
-                };
-
-                ws.onerror = () => {
-                    updateWsStatus('Error', 'bg-red-500');
-                    addLog('WebSocket error.', 'ERROR');
-                };
-            }
-
-            // --- UI Helper Functions ---
-            function updateWsStatus(text, colorClass) {
-                wsStatusText.textContent = text;
-                wsStatusLight.className = `h-3 w-3 rounded-full ${colorClass}`;
-            }
-
-            function addLog(message, level = 'DEBUG') {
-                const logEntry = document.createElement('div');
-                const timestamp = new Date().toLocaleTimeString();
-                const cleanMessage = message.replace(/\x1b\[[0-9;]*m/g, '');
-                const messageNode = document.createTextNode(`[${timestamp}] ${cleanMessage}`);
-                logEntry.className = `log-${level.toUpperCase()}`;
-                logEntry.appendChild(messageNode);
-                logContainer.appendChild(logEntry);
-                logContainer.scrollTop = logContainer.scrollHeight;
-            }
-
-            function getSignalColor(pwr) {
-                if (pwr > -60) return 'text-green-400';
-                if (pwr > -75) return 'text-yellow-400';
-                return 'text-red-400';
-            }
-            
-            function getStatusLabel(status) {
-                if (status === 'vulnerable_model') {
-                    return '<span class="text-xs font-bold text-green-400">[VULNERABLE]</span>';
-                }
-                if (status === 'wps_locked') {
-                    return '<span class="text-xs text-red-400">[LOCKED]</span>';
-                }
-                if (status === 'vulnerable_version') {
-                    return '<span class="text-xs text-yellow-400">[WPS 1.0]</span>';
-                }
-                 if (status === 'already_stored') {
-                    return '<span class="text-xs text-blue-400">[STORED]</span>';
-                }
-                return '<span class="text-xs text-gray-500">N/A</span>';
-            }
-
-            function updateTargetList(networks) {
-                targetList.innerHTML = '';
-                if (networks && networks.length > 0) {
-                    targetPlaceholder.classList.add('hidden');
-                    targetTable.classList.remove('hidden');
-                    
-                    networks.forEach(net => {
-                        const row = document.createElement('tr');
-                        row.className = 'hover:bg-gray-700 cursor-pointer';
-                        
-                        const pwrColor = getSignalColor(net.Level);
-                        const model = `${net.Model} ${net.Model_number}`.trim();
-                        const essid = net.ESSID || '(No ESSID)';
-
-                        row.innerHTML = `
-                            <td class="py-2 px-3">${getStatusLabel(net.status)}</td>
-                            <td class="py-2 px-3 truncate" title="${essid}">${essid}</td>
-                            <td class="py-2 px-3 font-mono hidden sm:table-cell">${net.BSSID}</td>
-                            <td class="py-2 px-3 ${pwrColor} hidden sm:table-cell">${net.Level} dBm</td>
-                            <td class="py-2 px-3 hidden md:table-cell">${net.WPS_version}</td>
-                            <td class="py-2 px-3 hidden md:table-cell">${net.WPS_locked ? 'Yes' : 'No'}</td>
-                            <td class="py-2 px-3 truncate hidden lg:table-cell" title="${model}">${model || 'N/A'}</td>
-                            <td class="py-2 px-3"></td>
-                        `;
-                        
-                        const selectBtn = document.createElement('button');
-                        selectBtn.textContent = 'Select';
-                        selectBtn.className = 'bg-blue-600 hover:bg-blue-700 text-white text-xs py-1 px-2 rounded-md';
-                        selectBtn.onclick = (e) => {
-                            e.stopPropagation();
-                            selectTarget(net.BSSID, net.ESSID, model);
-                        };
-                        
-                        row.cells[row.cells.length - 1].appendChild(selectBtn);
-                        row.addEventListener('click', () => selectTarget(net.BSSID, net.ESSID, model));
-                        targetList.appendChild(row);
-                    });
-                } else {
-                    targetPlaceholder.classList.remove('hidden');
-                    targetTable.classList.add('hidden');
-                    targetPlaceholder.textContent = 'No WPS networks found.';
-                }
-            }
-
-            function selectTarget(bssid, essid, model) {
-                selectedBSSID = bssid;
-                selectedESSID = essid || '(No ESSID)';
-                selectedModel = model || null;
-                
-                targetBSSID.textContent = selectedBSSID;
-                targetESSID.textContent = selectedESSID;
-                
-                attackBtn.disabled = false;
-                attackBtnText.textContent = 'Start Attack';
-
-                Array.from(targetList.rows).forEach(row => {
-                    // Use includes instead of exact match for BSSID cell
-                    if (row.innerHTML.includes(bssid)) {
-                        row.classList.add('bg-blue-900');
-                    } else {
-                        row.classList.remove('bg-blue-900');
-                    }
-                });
-                addLog(`Target selected: ${selectedESSID} (${selectedBSSID})`, 'INFO');
-            }
-
-            function setScanButtonState(isLoading) {
-                scanBtn.disabled = isLoading;
-                if (isLoading) {
-                    scanBtnSpinner.classList.remove('hidden');
-                    scanBtnText.textContent = 'Scanning...';
-                } else {
-                    scanBtnSpinner.classList.add('hidden');
-                    scanBtnText.textContent = 'Scan';
-                }
-            }
-            
-            function setAttackButtonState(isLoading) {
-                attackBtn.disabled = isLoading;
-                if (isLoading) {
-                    attackBtnSpinner.classList.remove('hidden');
-                    attackBtnText.textContent = 'Attacking...';
-                    stopBtn.classList.remove('hidden');
-                    scanBtn.disabled = true;
-                } else {
-                    attackBtnSpinner.classList.add('hidden');
-                    attackBtnText.textContent = 'Start Attack';
-                    stopBtn.classList.add('hidden');
-                    scanBtn.disabled = false;
-                }
-            }
-            
-            async function loadCredentials() {
-                try {
-                    const response = await fetch('/api/credentials');
-                    if (!response.ok) {
-                        throw new Error('Failed to fetch credentials');
-                    }
-                    const creds = await response.json();
-                    
-                    credentialsList.innerHTML = '';
-                    if (creds && creds.length > 0) {
-                        credentialsPlaceholder.classList.add('hidden');
-                        creds.reverse().forEach(cred => {
-                            const row = document.createElement('tr');
-                            row.innerHTML = `
-                                <td class="py-2 truncate" title="${cred.essid}">${cred.essid}</td>
-                                <td class="py-2 font-mono">${cred.pin}</td>
-                                <td class="py-2 font-mono truncate" title="${cred.psk}">${cred.psk}</td>
-                            `;
-                            credentialsList.appendChild(row);
-                        });
-                    } else {
-                        credentialsPlaceholder.classList.remove('hidden');
-                    }
-                } catch (err) {
-                    addLog(`Error loading credentials: ${err.message}`, 'ERROR');
-                }
-            }
-
-            // --- Event Listeners ---
-            clearLogBtn.onclick = () => { logContainer.innerHTML = ''; };
-
-            scanBtn.onclick = () => {
-                const interfaceVal = interfaceInput.value;
-                if (!interfaceVal) {
-                    addLog('Interface name cannot be empty.', 'ERROR'); return;
-                }
-                localStorage.setItem('PixieWeb_interface', interfaceVal);
-                
-                addLog(`Starting scan on ${interfaceVal}...`, 'INFO');
-                setScanButtonState(true);
-                targetPlaceholder.textContent = 'Scanning...';
-                targetPlaceholder.classList.remove('hidden');
-                targetTable.classList.add('hidden');
-                
-                fetch(`/api/scan?interface=${interfaceVal}`, { method: 'POST' })
-                    .catch(err => {
-                        addLog(`Scan API call failed: ${err}`, 'ERROR');
-                        setScanButtonState(false);
-                    });
-            };
-
-            attackTypeSelect.onchange = () => {
-                const type = attackTypeSelect.value;
-                pinGroup.classList.toggle('hidden', type !== 'pin' && type !== 'bruteforce');
-                delayGroup.classList.toggle('hidden', type !== 'bruteforce');
-                
-                if (type === 'pin') {
-                    customPinInput.placeholder = "e.g., 12345670 (blank for auto)";
-                } else if (type === 'bruteforce') {
-                    customPinInput.placeholder = "Start PIN e.g., 0000 (blank for new)";
-                }
-            };
-
-            attackBtn.onclick = () => {
-                if (!selectedBSSID) {
-                    addLog('No target selected for attack.', 'ERROR'); return;
-                }
-                setAttackButtonState(true);
-
-                const attackSettings = {
-                    interface: interfaceInput.value,
-                    bssid: selectedBSSID,
-                    essid: selectedESSID,
-                    model: selectedModel,
-                    attackType: attackTypeSelect.value,
-                    pin: customPinInput.value || null,
-                    delay: parseFloat(document.getElementById('bruteforce-delay').value) || 1.0,
-                    write: document.getElementById('check-write').checked,
-                    save: document.getElementById('check-save').checked,
-                    showPixieCmd: document.getElementById('check-pixie-cmd').checked,
-                    pixieForce: document.getElementById('check-pixie-force').checked,
-                    add_to_vuln_list: document.getElementById('check-add-vuln').checked
-                };
-                
-                if (attackSettings.pin === null && attackSettings.attackType === 'pin') {
-                    addLog('PIN Attack selected, but no PIN provided. Using auto-generated PIN.', 'WARNING');
-                }
-
-                addLog(`Starting ${attackSettings.attackType} attack on ${attackSettings.bssid}...`, 'INFO');
-
-                fetch('/api/attack', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(attackSettings)
-                })
-                .catch(err => {
-                    addLog(`Attack API call failed: ${err}`, 'ERROR');
-                    setAttackButtonState(false);
-                });
-            };
-            
-            stopBtn.onclick = () => {
-                addLog('Sending stop signal to server...', 'WARNING');
-                fetch('/api/attack/stop', { method: 'POST' })
-                    .catch(err => addLog(`Stop API call failed: ${err}`, 'ERROR'));
-            };
-            
-            manualSetBtn.onclick = () => {
-                const bssid = manualBssidInput.value.trim().toUpperCase();
-                const essid = '(Manual Target)';
-                
-                if (!bssid) {
-                    addLog('Manual BSSID cannot be empty.', 'ERROR');
-                    return;
-                }
-                
-                if (!bssidRegex.test(bssid)) {
-                    addLog('Invalid BSSID format. Use AA:BB:CC:11:22:33.', 'ERROR');
-                    return;
-                }
-                
-                selectTarget(bssid, essid, null);
-                manualBssidInput.value = '';
-            };
-
-            // --- Initial Load ---
-            const savedInterface = localStorage.getItem('PixieWeb_interface');
-            if (savedInterface) {
-                interfaceInput.value = savedInterface;
-            }
-            connectWebSocket();
-            loadCredentials();
-        });
-    </script>
+    <script src="app.js" defer></script>
 </body>
 </html>
