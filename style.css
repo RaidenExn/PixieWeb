@@ -159,12 +159,11 @@ body {
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    min-height: 300px;
+    height: 350px; /* MODIFIED: Set fixed height on mobile */
 }
 @media (min-width: 1024px) {
     .card-full-flex {
-        height: calc(50% - 6px); 
-        min-height: 0;
+        height: calc(50% - 6px); /* MODIFIED: Desktop override */
     }
 }
 
@@ -383,7 +382,7 @@ body {
     border-radius: var(--md-shape-corner-md);
 }
 .table-container-constrained {
-    overflow: hidden; 
+    overflow: auto; /* MODIFIED: Was hidden, now allows scroll */
     border: 1px solid var(--md-sys-outline-variant);
     border-radius: var(--md-shape-corner-md);
 }
